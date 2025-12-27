@@ -1,20 +1,85 @@
-version: "3.9"
+version: '3.8'
 
 services:
-  db:
-    image: postgres:15
+  postgres:
+    image: postgres:15-alpine
+    container_name: kasparro-postgres
     environment:
       POSTGRES_USER: etl_user
-      POSTGRES_PASSWORD: etl_pass
+      POSTGRES_PASSWORD: etl_password
       POSTGRES_DB: etl_db
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U etl_user -d etl_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kasparro-network
 
   api:
     build: .
+    container_name: kasparro-api
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://etl_user:etl_pass@db:5432/etl_db
+      DATABASE_URL: postgresql://etl_user:etl_password@postgres:5432/etl_db
+      COINPAPRIKA_API_KEY: ${COINPAPRIKA_API_KEY:-}
+      COINGECKO_API_KEY: ${COINGECKO_API_KEY:-}
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+    volumes:
+      - ./data:/app/data
+    command: >
+      sh -c "
+        echo '⏳ Waiting for database...' &&
+        sleep 5 &&
+        echo '📊 Initializing database...' &&
+        python -c 'from core.database import init_db; init_db()' &&
+        echo '🚀 Running ETL ingestion...' &&
+        python -c 'from ingestion.orchestrator import ETLOrchestrator; ETLOrchestrator().run_all()' &&
+        echo '✅ Starting API server...' &&
+        uvicorn api.main:app --host 0.0.0.0 --port 8000
+      "
+    networks:
+      - kasparro-network
+    restart: unless-stopped
+
+  etl-scheduler:
+    build: .
+    container_name: kasparro-etl-scheduler
     depends_on:
-      - db
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://etl_user:etl_password@postgres:5432/etl_db
+      COINPAPRIKA_API_KEY: ${COINPAPRIKA_API_KEY:-}
+      COINGECKO_API_KEY: ${COINGECKO_API_KEY:-}
+    volumes:
+      - ./data:/app/data
+    command: >
+      sh -c "
+        while true; do
+          echo '🔄 Running scheduled ETL at $(date)';
+          python -c 'from ingestion.orchestrator import ETLOrchestrator; ETLOrchestrator().run_all()';
+          echo '⏰ Next run in 1 hour...';
+          sleep 3600;
+        done
+      "
+    networks:
+      - kasparro-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+
+networks:
+  kasparro-network:
+    driver: bridge
