@@ -308,6 +308,21 @@ make test-local
 
 ## ☁️ Cloud Deployment
 
+## 🚀 Live Deployment (Verified)
+
+The backend API is deployed and publicly accessible for verification.
+
+**Base URL**:  
+https://kasparro-backend-sai-sanket.onrender.com
+
+### Public Endpoints
+- `/health` – System health check  
+- `/data` – Normalized crypto data  
+- `/stats` – ETL statistics  
+- `/docs` – Swagger UI  
+
+> The deployed service runs the same Docker image defined in this repository.
+
 ### AWS Deployment
 
 1. **Setup RDS PostgreSQL**:
