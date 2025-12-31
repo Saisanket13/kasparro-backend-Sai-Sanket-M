@@ -329,66 +329,7 @@ https://kasparro-backend-sai-sanket.onrender.com/stats
 Swagger Docs:
 https://kasparro-backend-sai-sanket.onrender.com/docs
 
-
-
 > The deployed service runs the same Docker image defined in this repository.
-
-### AWS Deployment
-
-1. **Setup RDS PostgreSQL**:
-```bash
-aws rds create-db-instance \
-  --db-instance-identifier kasparro-db \
-  --db-instance-class db.t3.micro \
-  --engine postgres \
-  --master-username etl_user \
-  --master-user-password YOUR_PASSWORD \
-  --allocated-storage 20
-```
-
-2. **Deploy to ECS**:
-```bash
-# Build and push image
-docker build -t kasparro-backend .
-docker tag kasparro-backend:latest YOUR_ECR_REPO/kasparro-backend:latest
-docker push YOUR_ECR_REPO/kasparro-backend:latest
-
-# Create ECS task definition and service
-aws ecs create-service --service-name kasparro-api ...
-```
-
-3. **Setup EventBridge Cron**:
-```bash
-aws events put-rule \
-  --name kasparro-etl-hourly \
-  --schedule-expression "rate(1 hour)"
-```
-
-### GCP Deployment
-
-1. **Setup Cloud SQL**:
-```bash
-gcloud sql instances create kasparro-db \
-  --database-version=POSTGRES_15 \
-  --tier=db-f1-micro \
-  --region=us-central1
-```
-
-2. **Deploy to Cloud Run**:
-```bash
-gcloud run deploy kasparro-api \
-  --image gcr.io/YOUR_PROJECT/kasparro-backend \
-  --platform managed
-```
-
-3. **Setup Cloud Scheduler**:
-```bash
-gcloud scheduler jobs create http kasparro-etl \
-  --schedule="0 * * * *" \
-  --uri="https://YOUR_CLOUD_RUN_URL/run-etl"
-```
-
----
 
 ## ⚙️ Configuration
 
