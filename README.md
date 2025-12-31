@@ -315,11 +315,21 @@ The backend API is deployed and publicly accessible for verification.
 **Base URL**:  
 https://kasparro-backend-sai-sanket.onrender.com
 
-### Public Endpoints
-- `/health` – System health check  
-- `/data` – Normalized crypto data  
-- `/stats` – ETL statistics  
-- `/docs` – Swagger UI  
+Public Endpoints (Verifiable)
+
+Health Check:
+https://kasparro-backend-sai-sanket.onrender.com/health
+
+Data API:
+https://kasparro-backend-sai-sanket.onrender.com/data
+
+Stats:
+https://kasparro-backend-sai-sanket.onrender.com/stats
+
+Swagger Docs:
+https://kasparro-backend-sai-sanket.onrender.com/docs
+
+
 
 > The deployed service runs the same Docker image defined in this repository.
 
